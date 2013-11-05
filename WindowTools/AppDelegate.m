@@ -21,10 +21,11 @@
     [statusItem setHighlightMode:YES];
     
     AXWrapper = [[AccessibilityWrapper alloc] init];
-    //inputHandler = [[InputHandler alloc] init];
+    inputHandler = [[InputHandler alloc] init];
     
-    eventMonitor = [InputHandler createHotkeyMonitor];
-    windowManager = [WindowManager createManager];
+    hotkeyMonitor = [InputHandler createHotkeyMonitor];
+    [inputHandler listenForMouseDown];
+    //windowManager = [WindowManager createManager];
    
     SlateLogger(@"Got AXWrapper up. Current window %@",
                 [AXWrapper getTitle]);

@@ -15,7 +15,8 @@
     NSStatusItem *statusItem;
     AccessibilityWrapper *AXWrapper;
     InputHandler *inputHandler;
-    id eventMonitor;
+    id mouseMonitor;
+    id hotkeyMonitor;
 }
 
 @property (assign) IBOutlet NSWindow *window;

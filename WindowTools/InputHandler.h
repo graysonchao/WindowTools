@@ -8,10 +8,20 @@
 
 #import <Foundation/Foundation.h>
 
-@interface InputHandler : NSObject {
-    @private
-}
+CGEventRef catchClick(
+    CGEventTapProxy proxy,
+    CGEventType type,
+    CGEventRef event,
+    void *refcon
+);
+
+CFMachPortRef eventTap;
+
+@interface InputHandler : NSObject
 
 +(id)createHotkeyMonitor;
+-(void)mouseWasPressed;
+// Enable event tap and create it if needed
+-(void)listenForMouseDown;
 
 @end
