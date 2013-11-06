@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "AccessibilityWrapper.h"
 
 CGEventRef catchClick(
     CGEventTapProxy proxy,
@@ -16,12 +17,20 @@ CGEventRef catchClick(
 );
 
 CFMachPortRef eventTap;
+NSPoint mousePosition;
+id mouseMovedMonitor;
+BOOL hotkeyOn;
+BOOL mouseDown;
+
+AccessibilityWrapper *accessibilityWrapper;
 
 @interface InputHandler : NSObject
 
 +(id)createHotkeyMonitor;
 -(void)mouseWasPressed;
+-(void)mouseWasDragged;
+-(void)mouseWasReleased;
 // Enable event tap and create it if needed
--(void)listenForMouseDown;
+-(void)listenForMouseActivity;
 
 @end

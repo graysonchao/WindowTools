@@ -7,9 +7,11 @@
 //
 
 #import "InputHandler.h"
-#import "SlateLogger.h"
+#import "AccessibilityWrapper.h"
 
 #define isClick(e) ([e type] == NSLeftMouseDown || [e type] == NSRightMouseDown)
+
+#define isUp(e) ([e type] == NSLeftMouseUp || [e type] == NSRightMouseUp)
 
 @implementation InputHandler
 
@@ -27,24 +29,28 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
     // that happens, just reenable it and all's well.
     if (type == kCGEventTapDisabledByTimeout)
     {
-        [(__bridge InputHandler *)refcon  listenForMouseDown];
+        [(__bridge InputHandler *)refcon  listenForMouseActivity];
         return NULL;
     }
     NSEvent *e = [NSEvent eventWithCGEvent:event];
-    NSLog(@"Hello");
     if (isClick(e)) {
-        if ([e modifierFlags] & (NSCommandKeyMask)) {
+        mouseDown = YES;
+        if (hotkeyOn) { // Steal the input if hotkey held
             [(__bridge InputHandler *)refcon mouseWasPressed];
-            NSLog(@"Hello");
             return NULL;
         }
         return event;
+    } else if (isUp(e)) {
+        mouseDown = NO;
+        if (hotkeyOn) {
+            [(__bridge InputHandler *)refcon mouseWasReleased];
+        }
     }
     return event;
 }
 
-- (void)listenForMouseDown {
-    CGEventMask mask = CGEventMaskBit(kCGEventLeftMouseDown) | CGEventMaskBit(kCGEventRightMouseDown);
+- (void)listenForMouseActivity {
+    CGEventMask mask = CGEventMaskBit(kCGEventLeftMouseDown) | CGEventMaskBit(kCGEventRightMouseDown) | CGEventMaskBit(kCGEventLeftMouseUp) | CGEventMaskBit(kCGEventRightMouseUp);
     
     if (!eventTap) {
         
@@ -61,6 +67,11 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
         CFRelease(runLoopSource);
     }
     CGEventTapEnable(eventTap, true);
+    
+    mouseMovedMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSLeftMouseDraggedMask|NSRightMouseDraggedMask handler:^(NSEvent * event) {
+        [self mouseWasDragged];
+    }];
+    
 }
 
 +(id) createHotkeyMonitor {
@@ -70,11 +81,12 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
             NSUInteger state = [incomingEvent modifierFlags];
             switch (state) {
                 case 0x80120:
-                    SlateLogger(@"Alt down yo");
-                    //SlateLogger(@"%@", [incomingEvent description]);
+                    NSLog(@"Alt down yo");
+                    hotkeyOn = YES;
                     break;
                 case 0x100: // KeyUp
-                    SlateLogger(@"Alt up yo!");
+                    NSLog(@"Alt up yo!");
+                    hotkeyOn = NO;
             }
         }
     }];
@@ -82,7 +94,37 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
 }
 
 -(void)mouseWasPressed {
-    NSLog(@"Mouse was pressed!");
+    // Get cursor pos and our targets
+    mousePosition = [NSEvent mouseLocation];
+    AXUIElementRef targetWindow = [AccessibilityWrapper windowUnderPoint:mousePosition];
+    AXUIElementRef targetApplication = [AccessibilityWrapper applicationForElement:targetWindow];
+   
+    accessibilityWrapper = [[AccessibilityWrapper alloc] initWithApp:targetApplication window:targetWindow];
+   
+    NSLog(@"Mouse was pressed at %f, %f!",
+          mousePosition.x, mousePosition.y);
+}
+
+-(void)mouseWasDragged {
+    if (hotkeyOn) {
+        NSLog(@"Mouse was moved");
+        NSLog(@"hotkey %d, mousedown %d", hotkeyOn, mouseDown);
+        NSPoint newMousePosition = [NSEvent mouseLocation];
+        float mouseDeltaX = newMousePosition.x - mousePosition.x;
+        float mouseDeltaY = newMousePosition.y - mousePosition.y;
+        
+        // Resize the window.
+        NSSize oldWindowSize = [accessibilityWrapper getCurrentSize];
+        NSSize newSize = oldWindowSize;
+        newSize.width = newSize.width + mouseDeltaX;
+        newSize.height = newSize.height - mouseDeltaY;
+        [accessibilityWrapper resizeWindow: newSize ];
+    }
+}
+
+-(void)mouseWasReleased {
+    NSLog(@"Mouse was released at %f, %f!",
+          mousePosition.x, mousePosition.y);
 }
 
 @end
