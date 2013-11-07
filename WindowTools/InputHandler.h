@@ -18,6 +18,8 @@ CGEventRef catchClick(
 
 CFMachPortRef eventTap;
 NSPoint mousePosition;
+CGFloat mouseHorizontalDistanceFromTopLeft;
+CGFloat mouseVerticalDistanceFromTopLeft;
 id mouseMovedMonitor;
 BOOL hotkeyOn;
 BOOL mouseDown;

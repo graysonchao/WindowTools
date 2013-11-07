@@ -8,6 +8,7 @@
 
 #import "InputHandler.h"
 #import "AccessibilityWrapper.h"
+#import "NSScreen+PointConversion.h"
 
 #define isClick(e) ([e type] == NSLeftMouseDown || [e type] == NSRightMouseDown)
 
@@ -94,35 +95,49 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
 }
 
 -(void)mouseWasPressed {
-    // Get cursor pos and our targets
+    
     mousePosition = [NSEvent mouseLocation];
+    
     AXUIElementRef targetWindow = [AccessibilityWrapper windowUnderPoint:mousePosition];
     AXUIElementRef targetApplication = [AccessibilityWrapper applicationForElement:targetWindow];
-   
+    
     accessibilityWrapper = [[AccessibilityWrapper alloc] initWithApp:targetApplication window:targetWindow];
    
-    NSLog(@"Mouse was pressed at %f, %f!",
-          mousePosition.x, mousePosition.y);
+    // We want to keep the mouse equidistant from the top left corner of the window.
+    NSPoint windowTopLeft = [accessibilityWrapper getCurrentTopLeft];
+    mouseHorizontalDistanceFromTopLeft = mousePosition.x - windowTopLeft.x;
+    mouseVerticalDistanceFromTopLeft = windowTopLeft.y - mousePosition.y;
+//  NSSize windowSize = [AccessibilityWrapper getSizeForWindow:targetWindow];
+   
+   
 }
 
 -(void)mouseWasDragged {
+    // Note to self: Y increases up. X increases right.
     if (hotkeyOn) {
         NSLog(@"Mouse was moved");
         NSLog(@"hotkey %d, mousedown %d", hotkeyOn, mouseDown);
-        NSPoint newMousePosition = [NSEvent mouseLocation];
-        float mouseDeltaX = newMousePosition.x - mousePosition.x;
-        float mouseDeltaY = newMousePosition.y - mousePosition.y;
+        NSPoint mousePosition = [NSEvent mouseLocation];
+        NSPoint windowDestination = mousePosition;
         
-        // Resize the window.
-        NSSize oldWindowSize = [accessibilityWrapper getCurrentSize];
-        NSSize newSize = oldWindowSize;
-        newSize.width = newSize.width + mouseDeltaX;
-        newSize.height = newSize.height - mouseDeltaY;
-        [accessibilityWrapper resizeWindow: newSize ];
+        windowDestination.y = [[NSScreen mainScreen] frame].size.height - windowDestination.y; // Normalize to screen
+        
+        windowDestination.x -= mouseHorizontalDistanceFromTopLeft;
+        windowDestination.y -= mouseVerticalDistanceFromTopLeft;
+        
+//        float mouseDeltaX = (newMousePosition.x - mousePosition.x);
+//        float mouseDeltaY = (newMousePosition.y - mousePosition.y);
+//        
+//        NSSize oldWindowSize = [accessibilityWrapper getCurrentSize];
+//        NSSize newSize = oldWindowSize;
+//        newSize.width = newSize.width + mouseDeltaX;
+//        newSize.height = newSize.height - mouseDeltaY;
+        [accessibilityWrapper moveWindow: windowDestination];
     }
 }
 
 -(void)mouseWasReleased {
+    accessibilityWrapper = NULL;
     NSLog(@"Mouse was released at %f, %f!",
           mousePosition.x, mousePosition.y);
 }
