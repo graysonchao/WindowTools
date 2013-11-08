@@ -9,6 +9,7 @@
 #import "InputHandler.h"
 #import "AccessibilityWrapper.h"
 #import "NSScreen+PointConversion.h"
+#import <Carbon/Carbon.h> // for keycodes
 
 #define isClick(e) ([e type] == NSLeftMouseDown || [e type] == NSRightMouseDown)
 #define isUp(e) ([e type] == NSLeftMouseUp || [e type] == NSRightMouseUp)
@@ -34,14 +35,14 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
     }
     NSEvent *e = [NSEvent eventWithCGEvent:event];
     if (isClick(e)) {
-        mouseDown = YES;
+        mouseIsDown = YES;
         if (moveHotkeyOn || resizeHotkeyOn) { // Steal the input if hotkey held
             [(__bridge InputHandler *)refcon mouseWasPressed];
             return NULL;
         }
         return event;
     } else if (isUp(e)) {
-        mouseDown = NO;
+        mouseIsDown = NO;
         if (moveHotkeyOn) {
             [(__bridge InputHandler *)refcon mouseWasReleased];
         }
@@ -74,26 +75,23 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
     
 }
 
+/* TODO: Parameterize keyCode/event flag checks */
 +(id) createHotkeyMonitor {
     id eventMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSFlagsChangedMask handler:^(NSEvent *incomingEvent) {
-        if ([incomingEvent keyCode] == 58) { // L or R alt
+        NSLog(@"%@", [incomingEvent description]);
+        if ([incomingEvent keyCode] == kVK_Option) {
             NSUInteger state = [incomingEvent modifierFlags];
-            switch (state) {
-                case 0x80120: // L alt
-                case 0x80140: // R alt
-                    moveHotkeyOn = YES;
-                    break;
-                case 0x100: // KeyUp
-                    moveHotkeyOn = NO;
+            if (state & NSAlternateKeyMask) {
+                moveHotkeyOn = YES;
+            } else {
+                moveHotkeyOn = NO;
             }
-        } else if ([incomingEvent keyCode] == 59) {// Ctrl
+        } else if ([incomingEvent keyCode] == kVK_Control) {
             NSUInteger state = [incomingEvent modifierFlags];
-            switch (state) {
-                case 0x40101: // L ctrl on my macbook pro, sorry people with real keyboards
-                    resizeHotkeyOn = YES;
-                    break;
-                case 0x100:
-                    resizeHotkeyOn = NO;
+            if (state & NSControlKeyMask) {
+                resizeHotkeyOn = YES;
+            } else {
+                    moveHotkeyOn = NO;
             }
         }
     }];

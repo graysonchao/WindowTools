@@ -24,7 +24,7 @@ id mouseMovedMonitor;
 BOOL moveHotkeyOn;
 BOOL resizeHotkeyOn;
 BOOL hasWindow;
-BOOL mouseDown;
+BOOL mouseIsDown;
 
 AccessibilityWrapper *accessibilityWrapper;
 
