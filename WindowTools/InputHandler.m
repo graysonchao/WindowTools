@@ -97,32 +97,41 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
 -(void)mouseWasPressed {
     
     mousePosition = [NSEvent mouseLocation];
+    //Normalize this position to the screen height (AccessibilityWrapper uses backwards coord system)
+    mousePosition.y = [[NSScreen mainScreen] frame].size.height - mousePosition.y;
     
     AXUIElementRef targetWindow = [AccessibilityWrapper windowUnderPoint:mousePosition];
-    AXUIElementRef targetApplication = [AccessibilityWrapper applicationForElement:targetWindow];
-    
-    accessibilityWrapper = [[AccessibilityWrapper alloc] initWithApp:targetApplication window:targetWindow];
-   
-    // We want to keep the mouse at a constant distance from the top left corner of the window.
-    NSPoint windowTopLeft = [accessibilityWrapper getCurrentTopLeft];
-//    NSLog(@"Window location: %f, %f", windowTopLeft.x, windowTopLeft.y);
-    mouseHorizontalDistanceFromTopLeft = mousePosition.x - windowTopLeft.x;
-    mouseVerticalDistanceFromTopLeft = ([[NSScreen mainScreen] frame].size.height - mousePosition.y) - windowTopLeft.y;
-    NSLog(@"Offset: %f, %f", mouseHorizontalDistanceFromTopLeft, mouseVerticalDistanceFromTopLeft);
-//  NSSize windowSize = [AccessibilityWrapper getSizeForWindow:targetWindow];
+    if (targetWindow) {
+        
+        hasWindow = YES;
+        
+        AXUIElementRef targetApplication = [AccessibilityWrapper applicationForElement:targetWindow];
+        
+        accessibilityWrapper = [[AccessibilityWrapper alloc] initWithApp:targetApplication window:targetWindow];
+       
+        // We want to keep the mouse at a constant distance from the top left corner of the window.
+        NSPoint windowTopLeft = [accessibilityWrapper getCurrentTopLeft];
+    //    NSLog(@"Window location: %f, %f", windowTopLeft.x, windowTopLeft.y);
+        mouseHorizontalDistanceFromTopLeft = mousePosition.x - windowTopLeft.x;
+        mouseVerticalDistanceFromTopLeft = mousePosition.y - windowTopLeft.y;
+        NSLog(@"Offset: %f, %f", mouseHorizontalDistanceFromTopLeft, mouseVerticalDistanceFromTopLeft);
+    //  NSSize windowSize = [AccessibilityWrapper getSizeForWindow:targetWindow];
+    } else {
+        hasWindow = NO;
+    }
    
    
 }
 
 -(void)mouseWasDragged {
     // Note to self: Y increases down. X increases right.
-    if (hotkeyOn) {
+    if (hotkeyOn && hasWindow) {
 //        NSLog(@"Mouse was moved");
 //        NSLog(@"hotkey %d, mousedown %d", hotkeyOn, mouseDown);
         NSPoint mouseCurrentPosition = [NSEvent mouseLocation];
-       
-        CGSize screenSize = [[NSScreen mainScreen] frame].size;
-        mouseCurrentPosition.y = screenSize.height - mouseCurrentPosition.y; // Normalize to ze screen
+      
+        // Again normalize the mouse position to the screen, because backwards coordinates.
+        mouseCurrentPosition.y = [[NSScreen mainScreen] frame].size.height - mouseCurrentPosition.y;
         
         NSPoint windowDestination = [accessibilityWrapper getCurrentTopLeft];
         windowDestination = mouseCurrentPosition;

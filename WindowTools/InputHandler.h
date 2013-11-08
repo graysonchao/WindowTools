@@ -22,6 +22,7 @@ CGFloat mouseHorizontalDistanceFromTopLeft;
 CGFloat mouseVerticalDistanceFromTopLeft;
 id mouseMovedMonitor;
 BOOL hotkeyOn;
+BOOL hasWindow;
 BOOL mouseDown;
 
 AccessibilityWrapper *accessibilityWrapper;
