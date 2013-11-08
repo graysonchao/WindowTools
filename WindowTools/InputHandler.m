@@ -58,7 +58,7 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
         eventTap = CGEventTapCreate(kCGSessionEventTap, kCGHeadInsertEventTap, 0,
                                     mask, mouseDownCallback, (__bridge void *)(self));
         if (!eventTap) {
-            NSLog(@"%@ no tap; universal access?", NSStringFromSelector(_cmd));
+//            NSLog(@"%@ no tap; universal access?", NSStringFromSelector(_cmd));
             return;
         }
         CFRunLoopSourceRef runLoopSource = CFMachPortCreateRunLoopSource(NULL,
@@ -82,11 +82,11 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
             NSUInteger state = [incomingEvent modifierFlags];
             switch (state) {
                 case 0x80120:
-                    NSLog(@"Alt down yo");
+//                    NSLog(@"Alt down yo");
                     hotkeyOn = YES;
                     break;
                 case 0x100: // KeyUp
-                    NSLog(@"Alt up yo!");
+//                    NSLog(@"Alt up yo!");
                     hotkeyOn = NO;
             }
         }
@@ -103,24 +103,29 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
     
     accessibilityWrapper = [[AccessibilityWrapper alloc] initWithApp:targetApplication window:targetWindow];
    
-    // We want to keep the mouse equidistant from the top left corner of the window.
+    // We want to keep the mouse at a constant distance from the top left corner of the window.
     NSPoint windowTopLeft = [accessibilityWrapper getCurrentTopLeft];
+//    NSLog(@"Window location: %f, %f", windowTopLeft.x, windowTopLeft.y);
     mouseHorizontalDistanceFromTopLeft = mousePosition.x - windowTopLeft.x;
-    mouseVerticalDistanceFromTopLeft = windowTopLeft.y - mousePosition.y;
+    mouseVerticalDistanceFromTopLeft = ([[NSScreen mainScreen] frame].size.height - mousePosition.y) - windowTopLeft.y;
+    NSLog(@"Offset: %f, %f", mouseHorizontalDistanceFromTopLeft, mouseVerticalDistanceFromTopLeft);
 //  NSSize windowSize = [AccessibilityWrapper getSizeForWindow:targetWindow];
    
    
 }
 
 -(void)mouseWasDragged {
-    // Note to self: Y increases up. X increases right.
+    // Note to self: Y increases down. X increases right.
     if (hotkeyOn) {
-        NSLog(@"Mouse was moved");
-        NSLog(@"hotkey %d, mousedown %d", hotkeyOn, mouseDown);
-        NSPoint mousePosition = [NSEvent mouseLocation];
-        NSPoint windowDestination = mousePosition;
+//        NSLog(@"Mouse was moved");
+//        NSLog(@"hotkey %d, mousedown %d", hotkeyOn, mouseDown);
+        NSPoint mouseCurrentPosition = [NSEvent mouseLocation];
+       
+        CGSize screenSize = [[NSScreen mainScreen] frame].size;
+        mouseCurrentPosition.y = screenSize.height - mouseCurrentPosition.y; // Normalize to ze screen
         
-        windowDestination.y = [[NSScreen mainScreen] frame].size.height - windowDestination.y; // Normalize to screen
+        NSPoint windowDestination = [accessibilityWrapper getCurrentTopLeft];
+        windowDestination = mouseCurrentPosition;
         
         windowDestination.x -= mouseHorizontalDistanceFromTopLeft;
         windowDestination.y -= mouseVerticalDistanceFromTopLeft;
@@ -137,9 +142,8 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
 }
 
 -(void)mouseWasReleased {
-    accessibilityWrapper = NULL;
-    NSLog(@"Mouse was released at %f, %f!",
-          mousePosition.x, mousePosition.y);
+//    NSLog(@"Mouse was released at %f, %f!",
+//          mousePosition.x, mousePosition.y);
 }
 
 @end
