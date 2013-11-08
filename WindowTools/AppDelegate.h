@@ -11,14 +11,19 @@
 #import "InputHandler.h"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate> {
+    // Menu stuff
     IBOutlet NSMenu *trayMenu;
+    IBOutlet NSMenuItem *about;
+    IBOutlet NSMenuItem *config;
+    IBOutlet NSMenuItem *quit;
+    
     NSStatusItem *statusItem;
+   
+    // Doin' things stuff
     AccessibilityWrapper *AXWrapper;
     InputHandler *inputHandler;
     id mouseMonitor;
     id hotkeyMonitor;
 }
-
-@property (assign) IBOutlet NSWindow *window;
 
 @end

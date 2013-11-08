@@ -649,6 +649,9 @@
         </menu>
         <customObject id="494" customClass="AppDelegate">
             <connections>
+                <outlet property="about" destination="TxB-9h-pEX" id="iAJ-QX-mP4"/>
+                <outlet property="config" destination="Ce9-jU-qIl" id="O44-lU-DOn"/>
+                <outlet property="quit" destination="7pk-bz-KBS" id="Rlq-TR-Fjb"/>
                 <outlet property="trayMenu" destination="Fsj-Vb-0Ed" id="t5r-z9-YIw"/>
             </connections>
         </customObject>
@@ -663,14 +666,17 @@
         </button>
         <menu id="Fsj-Vb-0Ed">
             <items>
-                <menuItem title="Item 1" id="TxB-9h-pEX">
+                <menuItem title="About" id="TxB-9h-pEX">
                     <modifierMask key="keyEquivalentModifierMask"/>
                 </menuItem>
-                <menuItem title="Item 2" id="Ce9-jU-qIl">
+                <menuItem title="Config" id="Ce9-jU-qIl">
                     <modifierMask key="keyEquivalentModifierMask"/>
                 </menuItem>
-                <menuItem title="Item 3" id="7pk-bz-KBS">
+                <menuItem title="Quit" id="7pk-bz-KBS">
                     <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="terminate:" target="-3" id="gsC-He-0Jl"/>
+                    </connections>
                 </menuItem>
             </items>
         </menu>

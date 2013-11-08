@@ -21,7 +21,8 @@ NSPoint mousePosition;
 CGFloat mouseHorizontalDistanceFromTopLeft;
 CGFloat mouseVerticalDistanceFromTopLeft;
 id mouseMovedMonitor;
-BOOL hotkeyOn;
+BOOL moveHotkeyOn;
+BOOL resizeHotkeyOn;
 BOOL hasWindow;
 BOOL mouseDown;
 

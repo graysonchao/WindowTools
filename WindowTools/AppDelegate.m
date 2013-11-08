@@ -17,16 +17,15 @@
     // Insert code here to initialize your application
     statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
     [statusItem setMenu:trayMenu];
-    [statusItem setTitle:@"W"];
+    [statusItem setTitle: @"W"];
     [statusItem setHighlightMode:YES];
     
     inputHandler = [[InputHandler alloc] init];
     
     hotkeyMonitor = [InputHandler createHotkeyMonitor];
     [inputHandler listenForMouseActivity];
-    //windowManager = [WindowManager createManager];
    
-    SlateLogger(@"Got AXWrapper up. Current window %@",
+    NSLog(@"Got AXWrapper up. Current window %@",
                 [AXWrapper getTitle]);
 
 }

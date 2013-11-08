@@ -11,7 +11,6 @@
 #import "NSScreen+PointConversion.h"
 
 #define isClick(e) ([e type] == NSLeftMouseDown || [e type] == NSRightMouseDown)
-
 #define isUp(e) ([e type] == NSLeftMouseUp || [e type] == NSRightMouseUp)
 
 @implementation InputHandler
@@ -36,14 +35,14 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
     NSEvent *e = [NSEvent eventWithCGEvent:event];
     if (isClick(e)) {
         mouseDown = YES;
-        if (hotkeyOn) { // Steal the input if hotkey held
+        if (moveHotkeyOn || resizeHotkeyOn) { // Steal the input if hotkey held
             [(__bridge InputHandler *)refcon mouseWasPressed];
             return NULL;
         }
         return event;
     } else if (isUp(e)) {
         mouseDown = NO;
-        if (hotkeyOn) {
+        if (moveHotkeyOn) {
             [(__bridge InputHandler *)refcon mouseWasReleased];
         }
     }
@@ -76,18 +75,25 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
 }
 
 +(id) createHotkeyMonitor {
-    // Watch for whenever the user presses alt
     id eventMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSFlagsChangedMask handler:^(NSEvent *incomingEvent) {
         if ([incomingEvent keyCode] == 58) { // L or R alt
             NSUInteger state = [incomingEvent modifierFlags];
             switch (state) {
-                case 0x80120:
-//                    NSLog(@"Alt down yo");
-                    hotkeyOn = YES;
+                case 0x80120: // L alt
+                case 0x80140: // R alt
+                    moveHotkeyOn = YES;
                     break;
                 case 0x100: // KeyUp
-//                    NSLog(@"Alt up yo!");
-                    hotkeyOn = NO;
+                    moveHotkeyOn = NO;
+            }
+        } else if ([incomingEvent keyCode] == 59) {// Ctrl
+            NSUInteger state = [incomingEvent modifierFlags];
+            switch (state) {
+                case 0x40101: // L ctrl on my macbook pro, sorry people with real keyboards
+                    resizeHotkeyOn = YES;
+                    break;
+                case 0x100:
+                    resizeHotkeyOn = NO;
             }
         }
     }];
@@ -111,10 +117,10 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
        
         // We want to keep the mouse at a constant distance from the top left corner of the window.
         NSPoint windowTopLeft = [accessibilityWrapper getCurrentTopLeft];
-    //    NSLog(@"Window location: %f, %f", windowTopLeft.x, windowTopLeft.y);
+//        NSLog(@"Window location: %f, %f", windowTopLeft.x, windowTopLeft.y);
         mouseHorizontalDistanceFromTopLeft = mousePosition.x - windowTopLeft.x;
         mouseVerticalDistanceFromTopLeft = mousePosition.y - windowTopLeft.y;
-        NSLog(@"Offset: %f, %f", mouseHorizontalDistanceFromTopLeft, mouseVerticalDistanceFromTopLeft);
+//        NSLog(@"Offset: %f, %f", mouseHorizontalDistanceFromTopLeft, mouseVerticalDistanceFromTopLeft);
     //  NSSize windowSize = [AccessibilityWrapper getSizeForWindow:targetWindow];
     } else {
         hasWindow = NO;
@@ -125,28 +131,40 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
 
 -(void)mouseWasDragged {
     // Note to self: Y increases down. X increases right.
-    if (hotkeyOn && hasWindow) {
-//        NSLog(@"Mouse was moved");
-//        NSLog(@"hotkey %d, mousedown %d", hotkeyOn, mouseDown);
-        NSPoint mouseCurrentPosition = [NSEvent mouseLocation];
-      
-        // Again normalize the mouse position to the screen, because backwards coordinates.
-        mouseCurrentPosition.y = [[NSScreen mainScreen] frame].size.height - mouseCurrentPosition.y;
-        
-        NSPoint windowDestination = [accessibilityWrapper getCurrentTopLeft];
-        windowDestination = mouseCurrentPosition;
-        
-        windowDestination.x -= mouseHorizontalDistanceFromTopLeft;
-        windowDestination.y -= mouseVerticalDistanceFromTopLeft;
-        
-//        float mouseDeltaX = (newMousePosition.x - mousePosition.x);
-//        float mouseDeltaY = (newMousePosition.y - mousePosition.y);
-//        
-//        NSSize oldWindowSize = [accessibilityWrapper getCurrentSize];
-//        NSSize newSize = oldWindowSize;
-//        newSize.width = newSize.width + mouseDeltaX;
-//        newSize.height = newSize.height - mouseDeltaY;
-        [accessibilityWrapper moveWindow: windowDestination];
+    if (hasWindow) {
+        if (moveHotkeyOn) {
+    //        NSLog(@"Mouse was moved");
+    //        NSLog(@"hotkey %d, mousedown %d", hotkeyOn, mouseDown);
+            NSPoint currentMousePosition = [NSEvent mouseLocation];
+          
+            // Again normalize the mouse position to the screen, because backwards coordinates.
+            currentMousePosition.y = [[NSScreen mainScreen] frame].size.height - currentMousePosition.y;
+            
+            NSPoint windowDestination = [accessibilityWrapper getCurrentTopLeft];
+            windowDestination = currentMousePosition;
+            
+            windowDestination.x -= mouseHorizontalDistanceFromTopLeft;
+            windowDestination.y -= mouseVerticalDistanceFromTopLeft;
+            
+            [accessibilityWrapper moveWindow: windowDestination];
+        } else if (resizeHotkeyOn) {
+            NSPoint currentMousePosition = [NSEvent mouseLocation];
+          
+            // Again normalize the mouse position to the screen, because backwards coordinates.
+            currentMousePosition.y = [[NSScreen mainScreen] frame].size.height - currentMousePosition.y;
+            
+            float mouseDeltaX = (currentMousePosition.x - mousePosition.x);
+            float mouseDeltaY = (currentMousePosition.y - mousePosition.y);
+    
+            NSSize oldWindowSize = [accessibilityWrapper getCurrentSize];
+            NSSize newSize = oldWindowSize;
+            newSize.width += mouseDeltaX;
+            newSize.height += mouseDeltaY;
+            
+            [accessibilityWrapper resizeWindow: newSize];
+            
+            mousePosition = currentMousePosition;
+        }
     }
 }
 
