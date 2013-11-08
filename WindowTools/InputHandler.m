@@ -91,7 +91,7 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
             if (state & NSControlKeyMask) {
                 resizeHotkeyOn = YES;
             } else {
-                    moveHotkeyOn = NO;
+                resizeHotkeyOn = NO;
             }
         }
     }];
@@ -101,8 +101,7 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
 -(void)mouseWasPressed {
     
     mousePosition = [NSEvent mouseLocation];
-    //Normalize this position to the screen height (AccessibilityWrapper uses backwards coord system)
-    mousePosition.y = [[NSScreen mainScreen] frame].size.height - mousePosition.y;
+    mousePosition = [[NSScreen mainScreen] flipPoint:mousePosition];
     
     AXUIElementRef targetWindow = [AccessibilityWrapper windowUnderPoint:mousePosition];
     if (targetWindow) {
@@ -128,28 +127,24 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
 }
 
 -(void)mouseWasDragged {
-    // Note to self: Y increases down. X increases right.
     if (hasWindow) {
         if (moveHotkeyOn) {
-    //        NSLog(@"Mouse was moved");
-    //        NSLog(@"hotkey %d, mousedown %d", hotkeyOn, mouseDown);
             NSPoint currentMousePosition = [NSEvent mouseLocation];
-          
-            // Again normalize the mouse position to the screen, because backwards coordinates.
-            currentMousePosition.y = [[NSScreen mainScreen] frame].size.height - currentMousePosition.y;
+            currentMousePosition = [[NSScreen mainScreen] flipPoint:currentMousePosition];
             
             NSPoint windowDestination = [accessibilityWrapper getCurrentTopLeft];
             windowDestination = currentMousePosition;
-            
+           
             windowDestination.x -= mouseHorizontalDistanceFromTopLeft;
             windowDestination.y -= mouseVerticalDistanceFromTopLeft;
             
             [accessibilityWrapper moveWindow: windowDestination];
         } else if (resizeHotkeyOn) {
             NSPoint currentMousePosition = [NSEvent mouseLocation];
-          
-            // Again normalize the mouse position to the screen, because backwards coordinates.
-            currentMousePosition.y = [[NSScreen mainScreen] frame].size.height - currentMousePosition.y;
+            currentMousePosition = [[NSScreen mainScreen] flipPoint:currentMousePosition];
+            
+//            // Again normalize the mouse position to the screen, because backwards coordinates.
+//            currentMousePosition.y = [[NSScreen mainScreen] frame].size.height - currentMousePosition.y;
             
             float mouseDeltaX = (currentMousePosition.x - mousePosition.x);
             float mouseDeltaY = (currentMousePosition.y - mousePosition.y);

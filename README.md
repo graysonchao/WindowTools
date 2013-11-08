@@ -16,13 +16,13 @@ Step 3. Fork me/thank me/hire me!
 
 Enormous thanks to:
 
-Jigish Patel for wrapping the Accessibility API for Cocoa in Slate:
+*Jigish Patel for wrapping the Accessibility API for Cocoa in Slate:
   https://github.com/jigish/slate/
   (specifically, the AccessibilityWrapper class)
   
-Nolan Waite for demonstrating EventTaps:
+*Nolan Waite for demonstrating EventTaps:
   https://github.com/nolanw/Ejectulate/
   (specifically, in the EJEjectKeyWatcher class)
 
-Oscar Del Ben for writing handy multi-monitor support functions:
+*Oscar Del Ben for writing handy multi-monitor support functions:
   https://github.com/oscardelben/NSScreen-PointConversion
