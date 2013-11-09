@@ -32,7 +32,7 @@
 
 - (IBAction)openAboutWindow:(id)sender {
     aboutWindow = [[NSWindowController alloc] initWithWindowNibName:@"About"];
-    [aboutWindow showWindow:self];
+    [aboutWindow showWindow:nil];
 }
 
 @end
