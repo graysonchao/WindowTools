@@ -7,20 +7,23 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import "AccessibilityWrapper.h"
-#import "InputHandler.h"
+
+@class AccessibilityWrapper;
+@class PreferencesWindowController;
+@class InputHandler;
 
 @interface AppDelegate : NSObject <NSApplicationDelegate> {
     // Menu stuff
     IBOutlet NSMenu *trayMenu;
     IBOutlet NSMenuItem *about;
-    IBOutlet NSMenuItem *config;
+    IBOutlet NSMenuItem *preferences;
     IBOutlet NSMenuItem *quit;
     
     NSStatusItem *statusItem;
     
     //Window stuff
     NSWindowController *aboutWindow;
+    PreferencesWindowController *preferencesWindow;
    
     // Doin' things stuff
     AccessibilityWrapper *AXWrapper;
@@ -30,5 +33,6 @@
 }
 
 -(IBAction)openAboutWindow:(id)sender;
+-(IBAction)openPreferencesWindow:(id)sender;
 
 @end

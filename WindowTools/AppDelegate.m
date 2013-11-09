@@ -6,10 +6,11 @@
 //  Copyright (c) 2013 Grayson Chao. All rights reserved.
 //
 
-#import "AppDelegate.h"
-#import "SlateLogger.h"
-#import "InputHandler.h"
 #import <Carbon/Carbon.h>
+#import "AppDelegate.h"
+#import "AccessibilityWrapper.h"
+#import "PreferencesWindowController.h"
+#import "InputHandler.h"
 
 @implementation AppDelegate
 
@@ -33,6 +34,11 @@
 - (IBAction)openAboutWindow:(id)sender {
     aboutWindow = [[NSWindowController alloc] initWithWindowNibName:@"About"];
     [aboutWindow showWindow:nil];
+}
+
+- (IBAction)openPreferencesWindow:(id)sender {
+    preferencesWindow = [[PreferencesWindowController alloc] initWithWindowNibName:@"Preferences"];
+    [preferencesWindow showWindow:nil];
 }
 
 @end

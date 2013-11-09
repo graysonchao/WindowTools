@@ -650,7 +650,7 @@
         <customObject id="494" customClass="AppDelegate">
             <connections>
                 <outlet property="about" destination="TxB-9h-pEX" id="CJ7-MA-7dI"/>
-                <outlet property="config" destination="Ce9-jU-qIl" id="O44-lU-DOn"/>
+                <outlet property="preferences" destination="Ce9-jU-qIl" id="Q0A-0z-ExP"/>
                 <outlet property="quit" destination="7pk-bz-KBS" id="Rlq-TR-Fjb"/>
                 <outlet property="trayMenu" destination="Fsj-Vb-0Ed" id="t5r-z9-YIw"/>
             </connections>
@@ -672,8 +672,11 @@
                         <action selector="openAboutWindow:" target="494" id="H2Z-kH-Gs6"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Config" id="Ce9-jU-qIl">
+                <menuItem title="Preferences" id="Ce9-jU-qIl">
                     <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="openPreferencesWindow:" target="494" id="ieQ-iW-mKm"/>
+                    </connections>
                 </menuItem>
                 <menuItem title="Quit" id="7pk-bz-KBS">
                     <modifierMask key="keyEquivalentModifierMask"/>
