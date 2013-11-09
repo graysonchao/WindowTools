@@ -16,6 +16,36 @@
 
 @implementation InputHandler
 
+-(id) initWithMoveKey:(NSInteger)moveHotkey resizeKey:(NSInteger)resizeHotkey {
+    if ( self = [super init] ) {
+        hotkeyMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSFlagsChangedMask handler:^(NSEvent *incomingEvent) {
+            NSLog(@"%@", [incomingEvent description]);
+            if ([incomingEvent keyCode] & moveHotkey) {
+                NSUInteger state = [incomingEvent modifierFlags];
+                if (state & NSCommandKeyMask) {
+                    moveHotkeyOn = YES;
+                } else {
+                    moveHotkeyOn = NO;
+                }
+            } else if ([incomingEvent keyCode] & resizeHotkey) {
+                NSUInteger state = [incomingEvent modifierFlags];
+                if (state & NSControlKeyMask) {
+                    resizeHotkeyOn = YES;
+                } else {
+                    resizeHotkeyOn = NO;
+                }
+            }
+        }];
+        keyUpMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSKeyUpMask handler:^(NSEvent *incomingEvent) {
+            moveHotkeyOn = NO;
+            resizeHotkeyOn = NO;
+        }];
+        [self listenForMouseActivity];
+        return self;
+    } else {
+        return nil;
+    }
+}
 // Thanks to Nolan Waite for directing me toward Kevin Gessner's post
 // in https://github.com/nolanw/Ejectulate/blob/master/src/EJEjectKeyWatcher.m
 // Original post:
@@ -76,27 +106,6 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
 }
 
 /* TODO: Parameterize keyCode/event flag checks */
-+(id) createHotkeyMonitor {
-    id eventMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSFlagsChangedMask handler:^(NSEvent *incomingEvent) {
-        NSLog(@"%@", [incomingEvent description]);
-        if ([incomingEvent keyCode] == kVK_Option) {
-            NSUInteger state = [incomingEvent modifierFlags];
-            if (state & NSAlternateKeyMask) {
-                moveHotkeyOn = YES;
-            } else {
-                moveHotkeyOn = NO;
-            }
-        } else if ([incomingEvent keyCode] == kVK_Control) {
-            NSUInteger state = [incomingEvent modifierFlags];
-            if (state & NSControlKeyMask) {
-                resizeHotkeyOn = YES;
-            } else {
-                resizeHotkeyOn = NO;
-            }
-        }
-    }];
-    return eventMonitor;
-}
 
 -(void)mouseWasPressed {
     
@@ -122,8 +131,6 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
     } else {
         hasWindow = NO;
     }
-   
-   
 }
 
 -(void)mouseWasDragged {
@@ -142,9 +149,6 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
         } else if (resizeHotkeyOn) {
             NSPoint currentMousePosition = [NSEvent mouseLocation];
             currentMousePosition = [[NSScreen mainScreen] flipPoint:currentMousePosition];
-            
-//            // Again normalize the mouse position to the screen, because backwards coordinates.
-//            currentMousePosition.y = [[NSScreen mainScreen] frame].size.height - currentMousePosition.y;
             
             float mouseDeltaX = (currentMousePosition.x - mousePosition.x);
             float mouseDeltaY = (currentMousePosition.y - mousePosition.y);

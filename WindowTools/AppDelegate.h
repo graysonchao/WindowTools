@@ -18,6 +18,9 @@
     IBOutlet NSMenuItem *quit;
     
     NSStatusItem *statusItem;
+    
+    //Window stuff
+    NSWindowController *aboutWindow;
    
     // Doin' things stuff
     AccessibilityWrapper *AXWrapper;
@@ -25,5 +28,7 @@
     id mouseMonitor;
     id hotkeyMonitor;
 }
+
+-(IBAction)openAboutWindow:(id)sender;
 
 @end

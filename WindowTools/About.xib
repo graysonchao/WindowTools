@@ -11,31 +11,97 @@
         <window title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" wantsToBeColor="NO" animationBehavior="default" id="1">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="196" y="240" width="221" height="282"/>
+            <rect key="contentRect" x="196" y="240" width="664" height="541"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1440" height="878"/>
             <view key="contentView" id="2">
-                <rect key="frame" x="0.0" y="0.0" width="221" height="282"/>
+                <rect key="frame" x="0.0" y="0.0" width="664" height="541"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="PtE-Yh-J8c">
-                        <rect key="frame" x="42" y="245" width="136" height="17"/>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tee-hh-VD4">
+                        <rect key="frame" x="266" y="504" width="132" height="17"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="WindowTools v.0.0.1" id="U2r-ln-9WL">
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="WindowTools v0.0.1" id="yuc-cg-xVH">
                             <font key="font" metaFont="system"/>
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
-                    <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="NHg-9i-RgJ">
-                        <rect key="frame" x="20" y="18" width="181" height="220"/>
+                    <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gA5-HE-XD4">
+                        <rect key="frame" x="0.0" y="-1" width="742" height="481"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <buttonCell key="cell" type="squareTextured" title="Textured Button" bezelStyle="texturedSquare" imagePosition="overlaps" alignment="center" state="on" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="3J9-OF-aiZ">
-                            <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="agU-OB-9UH">
                             <font key="font" metaFont="system"/>
-                        </buttonCell>
-                    </button>
+                            <mutableString key="title">WindowTools
+===========
+
+Resize and move windows using a hotkey - you can click anywhere on the window, instead of
+being forced to perform the onerous task of visually locating the top bar and sides of a
+window.
+
+How to use
+----------
+
+Step 1. Download and build (I build on a mid-2009 MBP in Xcode 5, YMMV but I can't see why it would)
+
+Step 2. Command drag to move. Control drag to resize.
+
+Step 3. Report bugs to me at github.com/graysonc/WindowTools
+
+Enormous thanks to:
+
+*Jigish Patel for wrapping the Accessibility API for Cocoa in Slate:
+  https://github.com/jigish/slate/
+  (specifically, the AccessibilityWrapper class)
+  
+*Nolan Waite for demonstrating EventTaps:
+  https://github.com/nolanw/Ejectulate/
+  (specifically, in the EJEjectKeyWatcher class)
+
+*Oscar Del Ben for writing handy multi-monitor support functions:
+  https://github.com/oscardelben/NSScreen-PointConversion</mutableString>
+                            <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
                 </subviews>
             </view>
         </window>
+        <textField verticalHuggingPriority="750" id="t2c-WZ-q7K">
+            <rect key="frame" x="0.0" y="0.0" width="659" height="405"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="5i9-5G-c2Z">
+                <font key="font" metaFont="system"/>
+                <mutableString key="title">WindowTools
+===========
+
+Resize and move windows using a hotkey - you can click anywhere on the window, instead of
+being forced to perform the onerous task of visually locating the top bar and sides of a
+window.
+
+How to use
+----------
+
+Step 1. Download and build (I build on a mid-2009 MBP in Xcode 5, YMMV but I can't see why it would)
+
+Step 2. Command drag to move. Control drag to resize.
+
+Step 3. Report bugs to me at github.com/graysonc/WindowTools
+
+Enormous thanks to:
+
+*Jigish Patel for wrapping the Accessibility API for Cocoa in Slate:
+  https://github.com/jigish/slate/
+  (specifically, the AccessibilityWrapper class)
+  
+*Nolan Waite for demonstrating EventTaps:
+  https://github.com/nolanw/Ejectulate/
+  (specifically, in the EJEjectKeyWatcher class)
+
+*Oscar Del Ben for writing handy multi-monitor support functions:
+  https://github.com/oscardelben/NSScreen-PointConversion</mutableString>
+                <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+            </textFieldCell>
+        </textField>
     </objects>
 </document>

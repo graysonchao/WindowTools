@@ -649,7 +649,7 @@
         </menu>
         <customObject id="494" customClass="AppDelegate">
             <connections>
-                <outlet property="about" destination="TxB-9h-pEX" id="iAJ-QX-mP4"/>
+                <outlet property="about" destination="TxB-9h-pEX" id="CJ7-MA-7dI"/>
                 <outlet property="config" destination="Ce9-jU-qIl" id="O44-lU-DOn"/>
                 <outlet property="quit" destination="7pk-bz-KBS" id="Rlq-TR-Fjb"/>
                 <outlet property="trayMenu" destination="Fsj-Vb-0Ed" id="t5r-z9-YIw"/>
@@ -668,6 +668,9 @@
             <items>
                 <menuItem title="About" id="TxB-9h-pEX">
                     <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="openAboutWindow:" target="494" id="H2Z-kH-Gs6"/>
+                    </connections>
                 </menuItem>
                 <menuItem title="Config" id="Ce9-jU-qIl">
                     <modifierMask key="keyEquivalentModifierMask"/>

@@ -10,9 +10,9 @@ How to use
 
 Step 1. Download and build (I build on a mid-2009 MBP in Xcode 5, YMMV but I can't see why it would)
 
-Step 2. Hold Control and drag on a window to resize it. Hold Option and drag on a window to move it.
+Step 2. Command drag to move. Control drag to resize.
 
-Step 3. Fork me/thank me/hire me!
+Step 3. Report bugs to me at github.com/graysonc/WindowTools
 
 Enormous thanks to:
 

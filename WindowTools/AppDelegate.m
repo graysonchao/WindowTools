@@ -9,6 +9,7 @@
 #import "AppDelegate.h"
 #import "SlateLogger.h"
 #import "InputHandler.h"
+#import <Carbon/Carbon.h>
 
 @implementation AppDelegate
 
@@ -20,14 +21,18 @@
     [statusItem setTitle: @"W"];
     [statusItem setHighlightMode:YES];
     
-    inputHandler = [[InputHandler alloc] init];
+    inputHandler = [[InputHandler alloc] initWithMoveKey: kVK_Command resizeKey: kVK_Control];
     
-    hotkeyMonitor = [InputHandler createHotkeyMonitor];
     [inputHandler listenForMouseActivity];
-   
+    
     NSLog(@"Got AXWrapper up. Current window %@",
                 [AXWrapper getTitle]);
 
+}
+
+- (IBAction)openAboutWindow:(id)sender {
+    aboutWindow = [[NSWindowController alloc] initWithWindowNibName:@"About"];
+    [aboutWindow showWindow:self];
 }
 
 @end

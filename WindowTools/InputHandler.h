@@ -27,10 +27,12 @@ BOOL hasWindow;
 BOOL mouseIsDown;
 
 AccessibilityWrapper *accessibilityWrapper;
+id hotkeyMonitor;
+id keyUpMonitor;
 
 @interface InputHandler : NSObject
 
-+(id)createHotkeyMonitor;
+-(id)initWithMoveKey:(NSInteger)moveHotkey resizeKey:(NSInteger)resizeHotkey;
 -(void)mouseWasPressed;
 -(void)mouseWasDragged;
 -(void)mouseWasReleased;
