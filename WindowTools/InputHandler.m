@@ -123,11 +123,9 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
        
         // We want to keep the mouse at a constant distance from the top left corner of the window.
         NSPoint windowTopLeft = [accessibilityWrapper getCurrentTopLeft];
-//        NSLog(@"Window location: %f, %f", windowTopLeft.x, windowTopLeft.y);
+        
         mouseHorizontalDistanceFromTopLeft = mousePosition.x - windowTopLeft.x;
         mouseVerticalDistanceFromTopLeft = mousePosition.y - windowTopLeft.y;
-//        NSLog(@"Offset: %f, %f", mouseHorizontalDistanceFromTopLeft, mouseVerticalDistanceFromTopLeft);
-    //  NSSize windowSize = [AccessibilityWrapper getSizeForWindow:targetWindow];
     } else {
         hasWindow = NO;
     }
@@ -138,12 +136,27 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
         if (moveHotkeyOn) {
             NSPoint currentMousePosition = [NSEvent mouseLocation];
             currentMousePosition = [[NSScreen mainScreen] flipPoint:currentMousePosition];
-            
-            NSPoint windowDestination = [accessibilityWrapper getCurrentTopLeft];
+
+            NSPoint windowTopLeft = [accessibilityWrapper getCurrentTopLeft];
+            NSPoint windowDestination = windowTopLeft;
             windowDestination = currentMousePosition;
            
             windowDestination.x -= mouseHorizontalDistanceFromTopLeft;
             windowDestination.y -= mouseVerticalDistanceFromTopLeft;
+
+            // Snap to left edge
+            if (fabs(windowDestination.x) < 10)
+                windowDestination.x = 0;
+           
+            CGFloat screenRightEdge = [[NSScreen mainScreen] frame].size.width;
+            NSSize windowSize = [accessibilityWrapper getCurrentSize];
+            CGFloat windowRightEdge = windowDestination.x + windowSize.width;
+          
+            NSLog(@"%f", fabs(screenRightEdge - windowRightEdge));
+            // Snap to right edge
+            if (fabs(screenRightEdge - windowRightEdge) < 10) {
+                windowDestination.x = screenRightEdge - windowSize.width;
+            }
             
             [accessibilityWrapper moveWindow: windowDestination];
         } else if (resizeHotkeyOn) {
