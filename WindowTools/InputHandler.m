@@ -44,7 +44,7 @@
                             } else {
                                 [menu setTitle:@"X"];
                             }
-                            NSLog(@"Enabled: %d", enabled);
+                            //NSLog(@"Enabled: %d", enabled);
                             [self setDoublePressBuffer:0];
                             break;
                         default:
@@ -137,9 +137,8 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
     CGEventTapEnable(eventTap, true);
     
     mouseMovedMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSLeftMouseDraggedMask|NSRightMouseDraggedMask|NSMouseMovedMask handler:^(NSEvent * event) {
-        mousePosition = [NSEvent mouseLocation];
-        mousePosition = [[NSScreen mainScreen] flipPoint:mousePosition];
         
+        //NSLog(@"%d", [accessibilityWrapper mouseQuadrantForCurrentWindow:[NSEvent mouseLocation]]);
         //NSLog(@"%d", mouseSideInWindow);
         if (isLeftDrag(event)) {
             [self mouseWasDragged:LEFT_MOUSE];
@@ -156,12 +155,11 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
 -(void)mouseWasPressed {
     
     mousePosition = [NSEvent mouseLocation];
+    mouseSideInWindow = [accessibilityWrapper mouseQuadrantForCurrentWindow:mousePosition];
     mousePosition = [[NSScreen mainScreen] flipPoint:mousePosition];
-    NSUInteger mouseSideInWindow = [accessibilityWrapper mouseQuadrantForCurrentWindow:mousePosition];
     AXUIElementRef targetWindow = [AccessibilityWrapper windowUnderPoint:mousePosition];
     if (targetWindow) {
         hasWindow = YES;
-        
         AXUIElementRef targetApplication = [AccessibilityWrapper applicationForElement:targetWindow];
         
         accessibilityWrapper = [[AccessibilityWrapper alloc] initWithApp:targetApplication window:targetWindow];
@@ -171,6 +169,10 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
         
         mouseHorizontalDistanceFromTopLeft = mousePosition.x - windowTopLeft.x;
         mouseVerticalDistanceFromTopLeft = mousePosition.y - windowTopLeft.y;
+        //NSLog(@"%f, %f", mousePosition.x, mousePosition.y);
+        
+        windowSize = [accessibilityWrapper getCurrentSize];
+        windowPosition = [accessibilityWrapper getCurrentTopLeft];
     } else {
         hasWindow = NO;
     }
@@ -190,8 +192,12 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
             windowDestination.y -= mouseVerticalDistanceFromTopLeft;
            
             CGFloat screenRightEdge = [[NSScreen mainScreen] frame].size.width;
+            CGFloat screenBottomEdge = [[NSScreen mainScreen] frame].size.height;
             NSSize windowSize = [accessibilityWrapper getCurrentSize];
             CGFloat windowRightEdge = windowDestination.x + windowSize.width;
+            CGFloat windowBottomEdge = windowDestination.y + windowSize.height;
+            
+            NSLog(@"window %f screen %f", windowBottomEdge, screenBottomEdge);
             
             // Snap to left edge
             if (fabs(windowDestination.x) < 10)
@@ -201,11 +207,15 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
             if (fabs(screenRightEdge - windowRightEdge) < 10)
                 windowDestination.x = screenRightEdge - windowSize.width;
             
+            // Snap to bottom edge
+            if (fabs(screenBottomEdge - windowBottomEdge) < 10)
+                windowDestination.y = screenBottomEdge - windowSize.height;
+            
             [accessibilityWrapper moveWindow: windowDestination];
         } else if (clickType == RIGHT_MOUSE) {
-            mousePosition = [[NSScreen mainScreen] flipPoint:mousePosition];
+            NSPoint flippedMousePosition = [[NSScreen mainScreen] flipPoint:mousePosition];
+            //NSLog(@"%f, %f", flippedMousePosition.x, flippedMousePosition.y);
             NSPoint currentMousePosition = [NSEvent mouseLocation];
-            NSUInteger mouseSideInWindow = [accessibilityWrapper mouseQuadrantForCurrentWindow:currentMousePosition];
             CGFloat x = currentMousePosition.x;
             CGFloat y = currentMousePosition.y;
             
@@ -216,44 +226,39 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
             x *= (1/width);
             y *= (1/height);
             
-            CGFloat deltaY = currentMousePosition.y - mousePosition.y;
-            CGFloat deltaX = currentMousePosition.x - mousePosition.x;
+            CGFloat deltaY = currentMousePosition.y - flippedMousePosition.y;
+            CGFloat deltaX = currentMousePosition.x - flippedMousePosition.x;
             
-            NSPoint windowPosition = [accessibilityWrapper getCurrentTopLeft];
+            NSPoint currentWindowPosition = [accessibilityWrapper getCurrentTopLeft];
             NSSize newSize = [accessibilityWrapper getCurrentSize];
            
-            NSLog(@"dx: %f, dy: %f", deltaX, deltaY);
             switch (mouseSideInWindow) {
                 case WINDOW_LEFT:
-                    NSLog(@"Left");
-                    newSize.width += deltaX;
-                    windowPosition.x += deltaX;
+                    newSize.width = windowSize.width - deltaX;
+                    currentWindowPosition.x = windowPosition.x + deltaX;
                     [accessibilityWrapper resizeWindow:newSize];
+                    [accessibilityWrapper moveWindow:currentWindowPosition];
                     break;
                     
                 case WINDOW_RIGHT:
-                    NSLog(@"Right");
-                    newSize.width += deltaX;
+                    newSize.width = windowSize.width + deltaX;
                     [accessibilityWrapper resizeWindow:newSize];
                     break;
                     
                 case WINDOW_TOP:
-                    NSLog(@"Top");
-                    newSize.height += deltaY;
-                    windowPosition.y -= deltaY;
-                    [accessibilityWrapper moveWindow: windowPosition];
+                    newSize.height = windowSize.height + deltaY;
+                    currentWindowPosition.y = windowPosition.y - deltaY;
                     [accessibilityWrapper resizeWindow:newSize];
+                    [accessibilityWrapper moveWindow: currentWindowPosition];
                     break;
                 case WINDOW_BOTTOM:
-                    NSLog(@"Bottom");
-                    newSize.height += deltaY;
+                    newSize.height  = windowSize.height - deltaY;
                     [accessibilityWrapper resizeWindow:newSize];
                     break;
                 default:
-                    NSLog(@"None");
+                    //NSLog(@"None");
                     break;
             }
-            mousePosition = currentMousePosition;
         }
     }
 }

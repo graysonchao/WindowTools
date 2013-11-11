@@ -43,12 +43,15 @@ CFMachPortRef eventTap;
 NSPoint mousePosition;
 CGFloat mouseHorizontalDistanceFromTopLeft;
 CGFloat mouseVerticalDistanceFromTopLeft;
+NSUInteger mouseSideInWindow;
 
 BOOL enabled; // when NO, mouse events are passed through the EventTap without processing
 
 // Window handling
 AccessibilityWrapper *accessibilityWrapper;
 BOOL hasWindow;
+NSSize windowSize;
+NSPoint windowPosition;
 
 @interface InputHandler : NSObject
 

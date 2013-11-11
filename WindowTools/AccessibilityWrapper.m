@@ -330,9 +330,10 @@ static NSDictionary *unselectableApps = nil;
 - (NSUInteger)mouseQuadrantForCurrentWindow:(NSPoint)mousePosition {
     NSSize size = [self getCurrentSize];
     if (size.width != 0.0 || size.height != 0.0) { // <- (0.0, 0.0) when no window was acquired
-       
-        CGFloat x = mousePosition.x;
-        CGFloat y = mousePosition.y;
+      
+        NSPoint topLeft = [self getCurrentTopLeft];
+        CGFloat x = mousePosition.x - topLeft.x;
+        CGFloat y = mousePosition.y - topLeft.y;
         
         CGFloat width = [self getCurrentSize].width;
         CGFloat height = [self getCurrentSize].height;
