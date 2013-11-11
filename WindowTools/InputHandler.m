@@ -197,7 +197,7 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
             CGFloat windowRightEdge = windowDestination.x + windowSize.width;
             CGFloat windowBottomEdge = windowDestination.y + windowSize.height;
             
-            NSLog(@"window %f screen %f", windowBottomEdge, screenBottomEdge);
+            //NSLog(@"window %f screen %f", windowBottomEdge, screenBottomEdge);
             
             // Snap to left edge
             if (fabs(windowDestination.x) < 10)

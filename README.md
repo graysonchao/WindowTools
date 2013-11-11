@@ -10,7 +10,8 @@ How to use
 
 Step 1. Download and build (I build on a mid-2009 MBP in Xcode 5, YMMV but I can't see why it would)
 
-Step 2. Command drag to move. Control drag to resize.
+Step 2. Command left drag to move, command right drag to resize. Double tap command to toggle normal 
+command key functionality (enable/disable WindowTools).
 
 Step 3. Report bugs to me at github.com/graysonc/WindowTools
 
