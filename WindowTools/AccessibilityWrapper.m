@@ -19,7 +19,9 @@
 //  along with this program.  If not, see http://www.gnu.org/licenses
 
 #import "AccessibilityWrapper.h"
+#import "InputHandler.h"
 #import "Constants.h"
+#import "NSScreen+PointConversion.h"
 #import "SlateLogger.h"
 
 static AXUIElementRef systemWideElement = NULL;
@@ -322,6 +324,40 @@ static NSDictionary *unselectableApps = nil;
     return role;
   }
   return nil;
+}
+
+// Assumes mousePosition and window use same coordinate system (origin at top left)
+- (NSUInteger)mouseQuadrantForCurrentWindow:(NSPoint)mousePosition {
+    NSSize size = [self getCurrentSize];
+    if (size.width != 0.0 || size.height != 0.0) { // <- (0.0, 0.0) when no window was acquired
+       
+        CGFloat x = mousePosition.x;
+        CGFloat y = mousePosition.y;
+        
+        CGFloat width = [self getCurrentSize].width;
+        CGFloat height = [self getCurrentSize].height;
+        
+        // Normalize height and width. It's much easier to do this in a square.
+        x *= (1/width);
+        y *= (1/height);
+
+        if (x <= .5){
+            if (y <= (1-x) && y > x)
+                return WINDOW_LEFT;
+            else if (y > (1-x))
+                return WINDOW_TOP;
+            else
+                return WINDOW_BOTTOM;
+        } else { // Not between the slopes
+            if (y <= x && y >= (1-x))
+                return WINDOW_RIGHT;
+            else if (y > (1-x))
+                return WINDOW_TOP;
+            else
+                return WINDOW_BOTTOM;
+        }
+    }
+    return WINDOW_ERROR;
 }
 
 @end

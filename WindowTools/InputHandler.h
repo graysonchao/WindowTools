@@ -17,9 +17,19 @@ CGEventRef catchClick(
 );
 
 typedef NS_ENUM(BOOL, mouseClickType) {
-    RIGHT,
-    LEFT
+    RIGHT_MOUSE,
+    LEFT_MOUSE
 };
+
+typedef NS_ENUM(NSUInteger, windowArea) { // The areas of a window you could be clickin' upon
+    WINDOW_TOP = 0,
+    WINDOW_RIGHT = 1,
+    WINDOW_BOTTOM = 2,
+    WINDOW_LEFT = 3,
+    WINDOW_ERROR = 4
+};
+
+NSStatusItem *menu;
 
 // Key handling
 id hotkeyMonitor;
@@ -42,10 +52,10 @@ BOOL hasWindow;
 
 @interface InputHandler : NSObject
 
--(id)initWithMoveKey:(NSInteger)moveHotkey;
+-(id)initWithMoveKey:(NSInteger)moveHotkey withMenu:(NSStatusItem *) menu;
 -(void)setDoublePressBuffer:(NSInteger)val;
 -(NSInteger)getDoublePressBuffer;
--(void)resetDoublePressBuffer;
+-(void)resetDoublePressBuffer; // to 0.
 
 // Enable event tap and create it if needed
 -(void)listenForMouseActivity;

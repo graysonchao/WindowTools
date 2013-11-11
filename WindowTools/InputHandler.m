@@ -19,14 +19,15 @@
 
 @implementation InputHandler
 
--(id) initWithMoveKey:(NSInteger)moveHotkey {
+-(id) initWithMoveKey:(NSInteger)moveHotkey withMenu:(NSStatusItem *) theMenu{
     if ( self = [super init] ) {
         enabled = YES;
+        menu = theMenu;
         hotkeyMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSFlagsChangedMask handler:^(NSEvent *incomingEvent) {
-            NSLog(@"%@", [incomingEvent description]);
+            //NSLog(@"%@", [incomingEvent description]);
             if ([incomingEvent keyCode] & moveHotkey) {
-                NSUInteger state = [incomingEvent modifierFlags];
-                if (state & NSCommandKeyMask) {
+                NSUInteger state = [incomingEvent modifierFlags] & NSDeviceIndependentModifierFlagsMask;
+                if (state == NSCommandKeyMask) {
                     switch ([self getDoublePressBuffer]) {
                         case 0:
                             [self setDoublePressBuffer:1];
@@ -38,12 +39,20 @@
                             break;
                         case 1:
                             enabled = !enabled;
-                            NSLog(@"%d", enabled);
+                            if (enabled) {
+                                [menu setTitle:@"W"];
+                            } else {
+                                [menu setTitle:@"X"];
+                            }
+                            NSLog(@"Enabled: %d", enabled);
                             [self setDoublePressBuffer:0];
                             break;
                         default:
+                            [self resetDoublePressBuffer];
                             break;
                     }
+                }
+                if (state & NSCommandKeyMask) {
                     hotkeyOn = YES;
                 } else {
                     hotkeyOn = NO;
@@ -127,12 +136,16 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
     }
     CGEventTapEnable(eventTap, true);
     
-    mouseMovedMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSLeftMouseDraggedMask|NSRightMouseDraggedMask handler:^(NSEvent * event) {
+    mouseMovedMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSLeftMouseDraggedMask|NSRightMouseDraggedMask|NSMouseMovedMask handler:^(NSEvent * event) {
+        mousePosition = [NSEvent mouseLocation];
+        mousePosition = [[NSScreen mainScreen] flipPoint:mousePosition];
+        
+        //NSLog(@"%d", mouseSideInWindow);
         if (isLeftDrag(event)) {
-            [self mouseWasDragged:LEFT];
+            [self mouseWasDragged:LEFT_MOUSE];
         }
         else if (isRightDrag(event)) {
-            [self mouseWasDragged:RIGHT];
+            [self mouseWasDragged:RIGHT_MOUSE];
         }
     }];
     
@@ -144,10 +157,9 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
     
     mousePosition = [NSEvent mouseLocation];
     mousePosition = [[NSScreen mainScreen] flipPoint:mousePosition];
-    
+    NSUInteger mouseSideInWindow = [accessibilityWrapper mouseQuadrantForCurrentWindow:mousePosition];
     AXUIElementRef targetWindow = [AccessibilityWrapper windowUnderPoint:mousePosition];
     if (targetWindow) {
-        
         hasWindow = YES;
         
         AXUIElementRef targetApplication = [AccessibilityWrapper applicationForElement:targetWindow];
@@ -165,8 +177,8 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
 }
 
 -(void)mouseWasDragged:(BOOL)clickType {
-    if (hasWindow && hotkeyOn && enabled) {
-        if (clickType == LEFT) {
+    if (enabled && hotkeyOn && hasWindow) {
+        if (clickType == LEFT_MOUSE) {
             NSPoint currentMousePosition = [NSEvent mouseLocation];
             currentMousePosition = [[NSScreen mainScreen] flipPoint:currentMousePosition];
 
@@ -176,44 +188,77 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
            
             windowDestination.x -= mouseHorizontalDistanceFromTopLeft;
             windowDestination.y -= mouseVerticalDistanceFromTopLeft;
-
-            // Snap to left edge
-            if (fabs(windowDestination.x) < 10)
-                windowDestination.x = 0;
            
             CGFloat screenRightEdge = [[NSScreen mainScreen] frame].size.width;
             NSSize windowSize = [accessibilityWrapper getCurrentSize];
             CGFloat windowRightEdge = windowDestination.x + windowSize.width;
+            
+            // Snap to left edge
+            if (fabs(windowDestination.x) < 10)
+                windowDestination.x = 0;
           
-            NSLog(@"%f", fabs(screenRightEdge - windowRightEdge));
             // Snap to right edge
-            if (fabs(screenRightEdge - windowRightEdge) < 10) {
+            if (fabs(screenRightEdge - windowRightEdge) < 10)
                 windowDestination.x = screenRightEdge - windowSize.width;
-            }
             
             [accessibilityWrapper moveWindow: windowDestination];
-        } else if (clickType == RIGHT) {
+        } else if (clickType == RIGHT_MOUSE) {
+            mousePosition = [[NSScreen mainScreen] flipPoint:mousePosition];
             NSPoint currentMousePosition = [NSEvent mouseLocation];
-            currentMousePosition = [[NSScreen mainScreen] flipPoint:currentMousePosition];
+            NSUInteger mouseSideInWindow = [accessibilityWrapper mouseQuadrantForCurrentWindow:currentMousePosition];
+            CGFloat x = currentMousePosition.x;
+            CGFloat y = currentMousePosition.y;
             
-            float mouseDeltaX = (currentMousePosition.x - mousePosition.x);
-            float mouseDeltaY = (currentMousePosition.y - mousePosition.y);
-    
-            NSSize oldWindowSize = [accessibilityWrapper getCurrentSize];
-            NSSize newSize = oldWindowSize;
-            newSize.width += mouseDeltaX;
-            newSize.height += mouseDeltaY;
+            CGFloat width = [accessibilityWrapper getCurrentSize].width;
+            CGFloat height = [accessibilityWrapper getCurrentSize].height;
             
-            [accessibilityWrapper resizeWindow: newSize];
+            // Normalize height and width. It's much easier to do this in a square.
+            x *= (1/width);
+            y *= (1/height);
             
+            CGFloat deltaY = currentMousePosition.y - mousePosition.y;
+            CGFloat deltaX = currentMousePosition.x - mousePosition.x;
+            
+            NSPoint windowPosition = [accessibilityWrapper getCurrentTopLeft];
+            NSSize newSize = [accessibilityWrapper getCurrentSize];
+           
+            NSLog(@"dx: %f, dy: %f", deltaX, deltaY);
+            switch (mouseSideInWindow) {
+                case WINDOW_LEFT:
+                    NSLog(@"Left");
+                    newSize.width += deltaX;
+                    windowPosition.x += deltaX;
+                    [accessibilityWrapper resizeWindow:newSize];
+                    break;
+                    
+                case WINDOW_RIGHT:
+                    NSLog(@"Right");
+                    newSize.width += deltaX;
+                    [accessibilityWrapper resizeWindow:newSize];
+                    break;
+                    
+                case WINDOW_TOP:
+                    NSLog(@"Top");
+                    newSize.height += deltaY;
+                    windowPosition.y -= deltaY;
+                    [accessibilityWrapper moveWindow: windowPosition];
+                    [accessibilityWrapper resizeWindow:newSize];
+                    break;
+                case WINDOW_BOTTOM:
+                    NSLog(@"Bottom");
+                    newSize.height += deltaY;
+                    [accessibilityWrapper resizeWindow:newSize];
+                    break;
+                default:
+                    NSLog(@"None");
+                    break;
+            }
             mousePosition = currentMousePosition;
         }
     }
 }
 
 -(void)mouseWasReleased {
-//    NSLog(@"Mouse was released at %f, %f!",
-//          mousePosition.x, mousePosition.y);
 }
 
 @end

@@ -61,5 +61,6 @@
 + (AXUIElementRef)applicationForElement:(AXUIElementRef)element;
 + (BOOL)isWindow:(AXUIElementRef)element;
 + (NSString *)getRole:(AXUIElementRef)element;
+- (NSUInteger)mouseQuadrantForCurrentWindow:(NSPoint)mousePosition;
 
 @end

@@ -22,8 +22,7 @@
     [statusItem setTitle: @"W"];
     [statusItem setHighlightMode:YES];
     
-    inputHandler = [[InputHandler alloc] initWithMoveKey: kVK_Command];
-    
+    inputHandler = [[InputHandler alloc] initWithMoveKey: kVK_Command withMenu:statusItem];
     [inputHandler listenForMouseActivity];
     
     NSLog(@"Got AXWrapper up. Current window %@",
