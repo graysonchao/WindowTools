@@ -22,7 +22,7 @@
     [statusItem setTitle: @"W"];
     [statusItem setHighlightMode:YES];
     
-    inputHandler = [[InputHandler alloc] initWithMoveKey: kVK_Command resizeKey: kVK_Control];
+    inputHandler = [[InputHandler alloc] initWithMoveKey: kVK_Command];
     
     [inputHandler listenForMouseActivity];
     

@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "AccessibilityWrapper.h"
+@class AccessibilityWrapper;
 
 CGEventRef catchClick(
     CGEventTapProxy proxy,
@@ -16,27 +16,42 @@ CGEventRef catchClick(
     void *refcon
 );
 
+typedef NS_ENUM(BOOL, mouseClickType) {
+    RIGHT,
+    LEFT
+};
+
+// Key handling
+id hotkeyMonitor;
+id keyUpMonitor;
+BOOL hotkeyOn;
+NSInteger doublePressBuffer; // Used to detect hotkey double tap
+
+// Mouse handling
+id mouseMovedMonitor;
 CFMachPortRef eventTap;
 NSPoint mousePosition;
 CGFloat mouseHorizontalDistanceFromTopLeft;
 CGFloat mouseVerticalDistanceFromTopLeft;
-id mouseMovedMonitor;
-BOOL moveHotkeyOn;
-BOOL resizeHotkeyOn;
-BOOL hasWindow;
-BOOL mouseIsDown;
 
+BOOL enabled; // when NO, mouse events are passed through the EventTap without processing
+
+// Window handling
 AccessibilityWrapper *accessibilityWrapper;
-id hotkeyMonitor;
-id keyUpMonitor;
+BOOL hasWindow;
 
 @interface InputHandler : NSObject
 
--(id)initWithMoveKey:(NSInteger)moveHotkey resizeKey:(NSInteger)resizeHotkey;
--(void)mouseWasPressed;
--(void)mouseWasDragged;
--(void)mouseWasReleased;
+-(id)initWithMoveKey:(NSInteger)moveHotkey;
+-(void)setDoublePressBuffer:(NSInteger)val;
+-(NSInteger)getDoublePressBuffer;
+-(void)resetDoublePressBuffer;
+
 // Enable event tap and create it if needed
 -(void)listenForMouseActivity;
+
+-(void)mouseWasPressed;
+-(void)mouseWasDragged:(BOOL)clickType;
+-(void)mouseWasReleased;
 
 @end

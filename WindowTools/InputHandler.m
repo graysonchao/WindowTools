@@ -11,34 +11,49 @@
 #import "NSScreen+PointConversion.h"
 #import <Carbon/Carbon.h> // for keycodes
 
-#define isClick(e) ([e type] == NSLeftMouseDown || [e type] == NSRightMouseDown)
+#define isLeftClick(e) ([e type] == NSLeftMouseDown)
+#define isLeftDrag(e) ([e type] == NSLeftMouseDragged)
+#define isRightClick(e) ([e type] == NSRightMouseDown)
+#define isRightDrag(e) ([e type] == NSRightMouseDragged)
 #define isUp(e) ([e type] == NSLeftMouseUp || [e type] == NSRightMouseUp)
 
 @implementation InputHandler
 
--(id) initWithMoveKey:(NSInteger)moveHotkey resizeKey:(NSInteger)resizeHotkey {
+-(id) initWithMoveKey:(NSInteger)moveHotkey {
     if ( self = [super init] ) {
+        enabled = YES;
         hotkeyMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSFlagsChangedMask handler:^(NSEvent *incomingEvent) {
             NSLog(@"%@", [incomingEvent description]);
             if ([incomingEvent keyCode] & moveHotkey) {
                 NSUInteger state = [incomingEvent modifierFlags];
                 if (state & NSCommandKeyMask) {
-                    moveHotkeyOn = YES;
+                    switch ([self getDoublePressBuffer]) {
+                        case 0:
+                            [self setDoublePressBuffer:1];
+                            [NSTimer scheduledTimerWithTimeInterval: 0.3
+                                                             target: self
+                                                           selector: @selector(resetDoublePressBuffer)
+                                                           userInfo: nil
+                                                            repeats: NO];
+                            break;
+                        case 1:
+                            enabled = !enabled;
+                            NSLog(@"%d", enabled);
+                            [self setDoublePressBuffer:0];
+                            break;
+                        default:
+                            break;
+                    }
+                    hotkeyOn = YES;
                 } else {
-                    moveHotkeyOn = NO;
-                }
-            } else if ([incomingEvent keyCode] & resizeHotkey) {
-                NSUInteger state = [incomingEvent modifierFlags];
-                if (state & NSControlKeyMask) {
-                    resizeHotkeyOn = YES;
-                } else {
-                    resizeHotkeyOn = NO;
+                    hotkeyOn = NO;
                 }
             }
         }];
-        keyUpMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSKeyUpMask handler:^(NSEvent *incomingEvent) {
-            moveHotkeyOn = NO;
-            resizeHotkeyOn = NO;
+        
+        // Any other keys should cancel the moving or resizing event.
+        keyUpMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSKeyDownMask handler:^(NSEvent *incomingEvent) {
+            hotkeyOn = NO;
         }];
         [self listenForMouseActivity];
         return self;
@@ -46,6 +61,19 @@
         return nil;
     }
 }
+
+-(void)setDoublePressBuffer:(NSInteger)val {
+    doublePressBuffer = val;
+}
+
+-(NSInteger)getDoublePressBuffer {
+    return doublePressBuffer;
+}
+
+-(void)resetDoublePressBuffer {
+    doublePressBuffer = 0;
+}
+
 // Thanks to Nolan Waite for directing me toward Kevin Gessner's post
 // in https://github.com/nolanw/Ejectulate/blob/master/src/EJEjectKeyWatcher.m
 // Original post:
@@ -63,18 +91,18 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
         [(__bridge InputHandler *)refcon  listenForMouseActivity];
         return NULL;
     }
-    NSEvent *e = [NSEvent eventWithCGEvent:event];
-    if (isClick(e)) {
-        mouseIsDown = YES;
-        if (moveHotkeyOn || resizeHotkeyOn) { // Steal the input if hotkey held
-            [(__bridge InputHandler *)refcon mouseWasPressed];
-            return NULL;
-        }
-        return event;
-    } else if (isUp(e)) {
-        mouseIsDown = NO;
-        if (moveHotkeyOn) {
-            [(__bridge InputHandler *)refcon mouseWasReleased];
+    if (enabled) {
+        NSEvent *e = [NSEvent eventWithCGEvent:event];
+        if (isLeftClick(e) || isRightClick(e)) {
+            if (hotkeyOn) { // Steal the input if hotkey held
+                [(__bridge InputHandler *)refcon mouseWasPressed];
+                return NULL;
+            }
+            return event;
+        } else if (isUp(e)) {
+            if (hotkeyOn) {
+                [(__bridge InputHandler *)refcon mouseWasReleased];
+            }
         }
     }
     return event;
@@ -100,7 +128,12 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
     CGEventTapEnable(eventTap, true);
     
     mouseMovedMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSLeftMouseDraggedMask|NSRightMouseDraggedMask handler:^(NSEvent * event) {
-        [self mouseWasDragged];
+        if (isLeftDrag(event)) {
+            [self mouseWasDragged:LEFT];
+        }
+        else if (isRightDrag(event)) {
+            [self mouseWasDragged:RIGHT];
+        }
     }];
     
 }
@@ -131,9 +164,9 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
     }
 }
 
--(void)mouseWasDragged {
-    if (hasWindow) {
-        if (moveHotkeyOn) {
+-(void)mouseWasDragged:(BOOL)clickType {
+    if (hasWindow && hotkeyOn && enabled) {
+        if (clickType == LEFT) {
             NSPoint currentMousePosition = [NSEvent mouseLocation];
             currentMousePosition = [[NSScreen mainScreen] flipPoint:currentMousePosition];
 
@@ -159,7 +192,7 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
             }
             
             [accessibilityWrapper moveWindow: windowDestination];
-        } else if (resizeHotkeyOn) {
+        } else if (clickType == RIGHT) {
             NSPoint currentMousePosition = [NSEvent mouseLocation];
             currentMousePosition = [[NSScreen mainScreen] flipPoint:currentMousePosition];
             
