@@ -52,6 +52,7 @@ AccessibilityWrapper *accessibilityWrapper;
 BOOL hasWindow;
 NSSize windowSize;
 NSPoint windowPosition;
+BOOL snapResize; // Resize as part of moving
 
 @interface InputHandler : NSObject
 

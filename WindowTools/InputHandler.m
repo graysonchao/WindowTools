@@ -210,8 +210,29 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
             // Snap to bottom edge
             if (fabs(screenBottomEdge - windowBottomEdge) < 10)
                 windowDestination.y = screenBottomEdge - windowSize.height;
+           
+            NSLog(@"%f", fabs(currentMousePosition.x - screenRightEdge));
+            
+            if (fabs(currentMousePosition.x) < 10) {
+                [accessibilityWrapper resizeWindow: CGSizeMake(screenRightEdge / 2, screenBottomEdge)];
+                windowDestination = CGPointMake(0, 0);
+            }
+            if (fabs(currentMousePosition.x - screenRightEdge) < 10) {
+                [accessibilityWrapper resizeWindow: CGSizeMake(screenRightEdge / 2, screenBottomEdge)];
+                windowDestination = CGPointMake(screenRightEdge/2, 0);
+            }
+            
+            if (fabs(currentMousePosition.y < 10)) {
+                [accessibilityWrapper resizeWindow: CGSizeMake(screenRightEdge, screenBottomEdge / 2)];
+                windowDestination = CGPointMake(0, 0);
+            }
+            if (fabs(currentMousePosition.y - screenBottomEdge) < 10) {
+                [accessibilityWrapper resizeWindow: CGSizeMake(screenRightEdge, screenBottomEdge / 2)];
+                windowDestination = CGPointMake(0, screenBottomEdge/2);
+            }
             
             [accessibilityWrapper moveWindow: windowDestination];
+            
         } else if (clickType == RIGHT_MOUSE) {
             NSPoint flippedMousePosition = [[NSScreen mainScreen] flipPoint:mousePosition];
             //NSLog(@"%f, %f", flippedMousePosition.x, flippedMousePosition.y);
