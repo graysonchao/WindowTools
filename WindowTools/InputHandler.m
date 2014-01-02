@@ -156,6 +156,7 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
     
     mousePosition = [NSEvent mouseLocation];
     mouseSideInWindow = [accessibilityWrapper mouseQuadrantForCurrentWindow:mousePosition];
+    previousWindowSize = [accessibilityWrapper getCurrentSize];
     mousePosition = [[NSScreen mainScreen] flipPoint:mousePosition];
     AXUIElementRef targetWindow = [AccessibilityWrapper windowUnderPoint:mousePosition];
     if (targetWindow) {
@@ -217,18 +218,22 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
                 [accessibilityWrapper resizeWindow: CGSizeMake(screenRightEdge / 2, screenBottomEdge)];
                 windowDestination = CGPointMake(0, 0);
             }
-            if (fabs(currentMousePosition.x - screenRightEdge) < 10) {
+            else if (fabs(currentMousePosition.x - screenRightEdge) < 10) {
+                // Snap Right
                 [accessibilityWrapper resizeWindow: CGSizeMake(screenRightEdge / 2, screenBottomEdge)];
-                windowDestination = CGPointMake(screenRightEdge/2, 0);
+                windowDestination = CGPointMake(screenRightEdge - [accessibilityWrapper getCurrentSize].width, 0);
             }
             
-            if (fabs(currentMousePosition.y < 10)) {
+            else if (fabs(currentMousePosition.y < 10)) {
                 [accessibilityWrapper resizeWindow: CGSizeMake(screenRightEdge, screenBottomEdge / 2)];
                 windowDestination = CGPointMake(0, 0);
             }
-            if (fabs(currentMousePosition.y - screenBottomEdge) < 10) {
+            else if (fabs(currentMousePosition.y - screenBottomEdge) < 10) {
                 [accessibilityWrapper resizeWindow: CGSizeMake(screenRightEdge, screenBottomEdge / 2)];
                 windowDestination = CGPointMake(0, screenBottomEdge/2);
+            }
+            else {
+                [accessibilityWrapper resizeWindow: previousWindowSize];
             }
             
             [accessibilityWrapper moveWindow: windowDestination];
@@ -243,7 +248,7 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
             CGFloat width = [accessibilityWrapper getCurrentSize].width;
             CGFloat height = [accessibilityWrapper getCurrentSize].height;
             
-            // Normalize height and width. It's much easier to do this in a square.
+            // Normalize height and width. It's much easier to do quadrants in a square.
             x *= (1/width);
             y *= (1/height);
             
@@ -285,6 +290,7 @@ static CGEventRef mouseDownCallback(CGEventTapProxy proxy,
 }
 
 -(void)mouseWasReleased {
+    previousWindowSize = [accessibilityWrapper getCurrentSize];
 }
 
 @end

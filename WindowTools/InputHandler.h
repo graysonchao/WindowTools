@@ -51,8 +51,8 @@ BOOL enabled; // when NO, mouse events are passed through the EventTap without p
 AccessibilityWrapper *accessibilityWrapper;
 BOOL hasWindow;
 NSSize windowSize;
+NSSize previousWindowSize;
 NSPoint windowPosition;
-BOOL snapResize; // Resize as part of moving
 
 @interface InputHandler : NSObject
 
